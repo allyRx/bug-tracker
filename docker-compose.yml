@@ -9,7 +9,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8080
+      - NEXT_PUBLIC_API_URL=http://192.168.56.20:8080
     depends_on:
       backend:
         condition: service_healthy
@@ -24,6 +24,7 @@ services:
   backend:
     build:
       context: ./bugtracker-backend
+    container_name: backend
     ports:
       - "8080:8080"
     volumes:

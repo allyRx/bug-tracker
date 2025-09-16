@@ -69,7 +69,7 @@ func createServer() *http.Server {
 	// Apply CORS middleware to all routes
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{
-			"http://localhost:3000",
+			"http://192.168.56.20:3000",
 			"https://bugtracker-staging-jameswillett.fly.dev",
 			"https://bugtracker-jameswillett.fly.dev",
 		},
