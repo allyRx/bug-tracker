@@ -12,10 +12,15 @@ pipeline {
             steps {
                 dir('bugtracker-backend/cmd/bugtracker') {
                       sh '''
-                        export GOCACHE=$(pwd)/.gocache
-                        mkdir -p $GOCACHE
-                        go test -v ./...
-                    '''
+                export GOCACHE=$(pwd)/.gocache
+                export GOMODCACHE=$(pwd)/.gomodcache
+
+                mkdir -p $GOCACHE
+                mkdir -p $GOMODCACHE
+
+                go mod tidy
+                go test -v ./...
+            '''
                 }
             }
         }
