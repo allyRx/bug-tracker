@@ -23,61 +23,44 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-// func TestServerInitialization(t *testing.T) {
-// 	os.Setenv("DB_PATH", testutil.GetTestDBPath())
-// 	defer testutil.CleanupTestDB()
-
-// 	testPort := ":8081" // Use a different port for testing
-// 	srv := createTestServer()
-// 	srv.Addr = testPort // Override the server port
-
-// 	// Start the server in a goroutine
-// 	go func() {
-// 		err := srv.ListenAndServe()
-// 		if err != http.ErrServerClosed {
-// 			t.Errorf("Expected ErrServerClosed, got %v", err)
-// 		}
-// 	}()
-
-// 	// Give the server a moment to start
-// 	time.Sleep(100 * time.Millisecond)
-
-// 	// Test CORS with an OPTIONS request
-// 	req, err := http.NewRequest("OPTIONS", "http://192.168.56.20:8081/api/health", nil)
-// 	assert.NoError(t, err)
-// 	req.Header.Set("Origin", "http://192.168.56.20:3000")
-// 	req.Header.Set("Access-Control-Request-Method", "GET")
-
-// 	client := &http.Client{}
-// 	resp, err := client.Do(req)
-// 	assert.NoError(t, err)
-// 	assert.Equal(t, http.StatusNoContent, resp.StatusCode)
-// 	assert.Equal(t, "http://192.168.56.20:3000", resp.Header.Get("Access-Control-Allow-Origin"))
-
-// 	// Test graceful shutdown
-// 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-// 	defer cancel()
-
-// 	err = srv.Shutdown(ctx)
-// 	assert.NoError(t, err)
-// }
 func TestServerInitialization(t *testing.T) {
-    ts := createTestServer()
-    defer ts.Close()
+	os.Setenv("DB_PATH", testutil.GetTestDBPath())
+	defer testutil.CleanupTestDB()
 
-    // Tu utilises ts.URL (ex: http://127.0.0.1:port)
-    req, err := http.NewRequest("OPTIONS", ts.URL+"/api/health", nil)
-    assert.NoError(t, err)
-    req.Header.Set("Origin", "http://192.168.56.20:3000")
-    req.Header.Set("Access-Control-Request-Method", "GET")
+	testPort := ":8081" // Use a different port for testing
+	srv := createTestServer()
+	srv.Addr = testPort // Override the server port
 
-    client := &http.Client{}
-    resp, err := client.Do(req)
-    assert.NoError(t, err)
-    assert.Equal(t, http.StatusNoContent, resp.StatusCode)
-    assert.Equal(t, "http://192.168.56.20:3000", resp.Header.Get("Access-Control-Allow-Origin"))
+	// Start the server in a goroutine
+	go func() {
+		err := srv.ListenAndServe()
+		if err != http.ErrServerClosed {
+			t.Errorf("Expected ErrServerClosed, got %v", err)
+		}
+	}()
+
+	// Give the server a moment to start
+	time.Sleep(100 * time.Millisecond)
+
+	// Test CORS with an OPTIONS request
+	req, err := http.NewRequest("OPTIONS", "http://192.168.56.20:8081/api/health", nil)
+	assert.NoError(t, err)
+	req.Header.Set("Origin", "http://192.168.56.20:3000")
+	req.Header.Set("Access-Control-Request-Method", "GET")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusNoContent, resp.StatusCode)
+	assert.Equal(t, "http://192.168.56.20:3000", resp.Header.Get("Access-Control-Allow-Origin"))
+
+	// Test graceful shutdown
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	err = srv.Shutdown(ctx)
+	assert.NoError(t, err)
 }
-
 
 func TestCORSConfiguration(t *testing.T) {
 	os.Setenv("DB_PATH", testutil.GetTestDBPath())
@@ -224,36 +207,22 @@ func TestCORSConfiguration(t *testing.T) {
 }
 
 // Test-specific server creation
-// func createTestServer() *http.Server {
-// 	r := mux.NewRouter()
-// 	// Health check endpoint before CORS
-// 	r.HandleFunc("/api/health", handlers.HealthCheck).Methods("GET")
+func createTestServer() *http.Server {
+	r := mux.NewRouter()
+	// Health check endpoint before CORS
+	r.HandleFunc("/api/health", handlers.HealthCheck).Methods("GET")
 
-// 	handler := cors.New(cors.Options{
-// 		AllowedOrigins:   []string{"http://192.168.56.20:3000"},
-// 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-// 		AllowedHeaders:   []string{"Content-Type", "Authorization", "Access-Control-Request-Method", "Access-Control-Request-Headers"},
-// 		AllowCredentials: true,
-// 		MaxAge:           300,
-// 		Debug:            true,
-// 	}).Handler(r)
+	handler := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://192.168.56.20:3000"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Content-Type", "Authorization", "Access-Control-Request-Method", "Access-Control-Request-Headers"},
+		AllowCredentials: true,
+		MaxAge:           300,
+		Debug:            true,
+	}).Handler(r)
 
-// 	return &http.Server{
-// 		Addr:    ":8081",
-// 		Handler: handler,
-// 	}
-// }
-func createTestServer() *httptest.Server {
-    r := mux.NewRouter()
-    r.HandleFunc("/api/health", handlers.HealthCheck).Methods("GET")
-
-    handler := cors.New(cors.Options{
-        AllowedOrigins:   []string{"http://192.168.56.20:3000"},
-        AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-        AllowedHeaders:   []string{"Content-Type", "Authorization", "Access-Control-Request-Method", "Access-Control-Request-Headers"},
-        AllowCredentials: true,
-        MaxAge:           300,
-    }).Handler(r)
-
-    return httptest.NewServer(handler)
+	return &http.Server{
+		Addr:    ":8081",
+		Handler: handler,
+	}
 }
