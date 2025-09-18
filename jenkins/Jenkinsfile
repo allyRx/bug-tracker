@@ -7,12 +7,20 @@ pipeline {
                 docker {
                     image 'snakee/golang-junit:1.21'
                     reuseNode true
-                    args '-v $HOME/.cache/go-build:/go/.cache/go-build -e GOCACHE=/go/.cache/go-build -e GOMODCACHE=/go/.cache/mod'
                 }
             }
             steps {
                 dir('bugtracker-backend/cmd/bugtracker') {
-                      sh 'go test -V ./...'
+                      sh '''
+                export GOCACHE=$(pwd)/.gocache
+                export GOMODCACHE=$(pwd)/.gomodcache
+
+                mkdir -p $GOCACHE
+                mkdir -p $GOMODCACHE
+
+                go mod tidy
+                go test -v ./...
+            '''
                 }
             }
         }
