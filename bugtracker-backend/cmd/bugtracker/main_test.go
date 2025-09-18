@@ -43,16 +43,16 @@ func TestServerInitialization(t *testing.T) {
 	time.Sleep(100 * time.Millisecond)
 
 	// Test CORS with an OPTIONS request
-	req, err := http.NewRequest("OPTIONS", "http://192.168.56.20:8081/api/health", nil)
+	req, err := http.NewRequest("OPTIONS", "http://localhost:8081/api/health", nil)
 	assert.NoError(t, err)
-	req.Header.Set("Origin", "http://192.168.56.20:3000")
+	req.Header.Set("Origin", "http://localhost:3000")
 	req.Header.Set("Access-Control-Request-Method", "GET")
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusNoContent, resp.StatusCode)
-	assert.Equal(t, "http://192.168.56.20:3000", resp.Header.Get("Access-Control-Allow-Origin"))
+	assert.Equal(t, "http://localhost:3000", resp.Header.Get("Access-Control-Allow-Origin"))
 
 	// Test graceful shutdown
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -96,9 +96,9 @@ func TestCORSConfiguration(t *testing.T) {
 		{
 			name:           "Valid OPTIONS request from allowed origin",
 			method:         "OPTIONS",
-			origin:         "http://192.168.56.20:3000",
+			origin:         "http://localhost:3000",
 			expectedStatus: http.StatusNoContent,
-			expectedOrigin: "http://192.168.56.20:3000",
+			expectedOrigin: "http://localhost:3000",
 			requestHeaders: map[string]string{
 				"Access-Control-Request-Method": "GET",
 			},
@@ -121,16 +121,16 @@ func TestCORSConfiguration(t *testing.T) {
 		{
 			name:              "Valid GET request from allowed origin",
 			method:            "GET",
-			origin:            "http://192.168.56.20:3000",
+			origin:            "http://localhost:3000",
 			expectedStatus:    http.StatusOK,
-			expectedOrigin:    "http://192.168.56.20:3000",
+			expectedOrigin:    "http://localhost:3000",
 			requestHeaders:    map[string]string{},
 			shouldHaveHeaders: true,
 		},
 		{
 			name:           "OPTIONS request with invalid method",
 			method:         "OPTIONS",
-			origin:         "http://192.168.56.20:3000",
+			origin:         "http://localhost:3000",
 			expectedStatus: http.StatusNoContent,
 			expectedOrigin: "",
 			requestHeaders: map[string]string{
@@ -141,9 +141,9 @@ func TestCORSConfiguration(t *testing.T) {
 		{
 			name:           "Request with credentials",
 			method:         "GET",
-			origin:         "http://192.168.56.20:3000",
+			origin:         "http://localhost:3000",
 			expectedStatus: http.StatusOK,
-			expectedOrigin: "http://192.168.56.20:3000",
+			expectedOrigin: "http://localhost:3000",
 			requestHeaders: map[string]string{
 				"Cookie": "session=123",
 			},
@@ -158,7 +158,7 @@ func TestCORSConfiguration(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			req, err := http.NewRequest(tt.method, fmt.Sprintf("http://192.168.56.20%s/api/health", testPort), nil)
+			req, err := http.NewRequest(tt.method, fmt.Sprintf("http://localhost%s/api/health", testPort), nil)
 			assert.NoError(t, err)
 
 			req.Header.Set("Origin", tt.origin)
@@ -213,7 +213,7 @@ func createTestServer() *http.Server {
 	r.HandleFunc("/api/health", handlers.HealthCheck).Methods("GET")
 
 	handler := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://192.168.56.20:3000"},
+		AllowedOrigins:   []string{"http://localhost:3000"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Content-Type", "Authorization", "Access-Control-Request-Method", "Access-Control-Request-Headers"},
 		AllowCredentials: true,
