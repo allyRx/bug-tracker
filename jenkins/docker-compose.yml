@@ -1,20 +1,3 @@
-# services:
-#   jenkins:
-#       image: jenkins/jenkins:lts
-#       container_name: jenkins
-#       restart: unless-stopped
-#       privileged: true
-#       user: root
-#       ports:
-#         - "8000:8080" # Port pour l'interface web de Jenkins
-#         - "50000:50000" # Port pour les agents Jenkins
-#       volumes:
-#         - jenkins_home:/var/jenkins_home
-#         - /var/run/docker.sock:/var/run/docker.sock
-
-
-# volumes:
-#   jenkins_home:
 services:
   reverse_proxy:
     image: nginx:latest
